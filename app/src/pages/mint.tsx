@@ -1,22 +1,7 @@
 import type { NextPage } from 'next';
 import { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { MyERC721ABI } from '@/abi/MyERC721.abi';
-
-// Types for NFT metadata
-type Attribute = {
-  traitType: string;
-  value: string;
-};
-
-type NFTMetadata = {
-  name: string;
-  description: string;
-  image: string;
-  thumbnail: string;
-  tags: string[];
-  attributes: Attribute[];
-};
+import { MammothIDABI } from '@/abi/MammothID.abi';
 
 type FieldErrors = {
   name?: string;
@@ -26,55 +11,8 @@ type FieldErrors = {
 
 const Mint: NextPage = () => {
   const { address } = useAccount();
-  const [metadata, setMetadata] = useState<NFTMetadata>({
-    name: '',
-    description: '',
-    image: '',
-    thumbnail: '',
-    tags: [],
-    attributes: [],
-  });
+  const [mammothId, setMammothId] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
-
-  const [newTag, setNewTag] = useState('');
-  const [newAttribute, setNewAttribute] = useState<Attribute>({
-    traitType: '',
-    value: '',
-  });
-
-  const addTag = () => {
-    if (newTag.trim()) {
-      setMetadata(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()],
-      }));
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (index: number) => {
-    setMetadata(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addAttribute = () => {
-    if (newAttribute.traitType && newAttribute.value) {
-      setMetadata(prev => ({
-        ...prev,
-        attributes: [...prev.attributes, { ...newAttribute }],
-      }));
-      setNewAttribute({ traitType: '', value: '' });
-    }
-  };
-
-  const removeAttribute = (index: number) => {
-    setMetadata(prev => ({
-      ...prev,
-      attributes: prev.attributes.filter((_, i) => i !== index),
-    }));
-  };
 
   const { writeContract: mintNFT, data: mintTxHash } = useWriteContract();
   const { isLoading: isMinting, isSuccess: isMinted } = useWaitForTransactionReceipt({
@@ -84,25 +22,14 @@ const Mint: NextPage = () => {
   const handleMint = () => {
     const newErrors: FieldErrors = {};
 
-    if (!metadata.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    if (!metadata.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-    if (!metadata.image.trim()) {
-      newErrors.image = 'Image URL is required';
-    }
-
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      const metadataString = JSON.stringify(metadata);
       mintNFT({
         address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-        abi: MyERC721ABI,
+        abi: MammothIDABI,
         functionName: 'mint',
-        args: [address as `0x${string}`, metadataString],
+        args: [address as `0x${string}`, BigInt(mammothId)],
       });
     }
   };
@@ -120,152 +47,20 @@ const Mint: NextPage = () => {
 
   return (
     <div className="w-full max-w-2xl p-6 border rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Mint an NFT</h2>
+      <h2 className="text-2xl font-semibold mb-4">Mint a Mammoth ID</h2>
       <div className="flex flex-col gap-4">
         <div>
-          <input 
+          <input
             type="text"
-            placeholder="Name"
-            value={metadata.name}
+            placeholder="Mammoth ID"
+            value={mammothId}
             onChange={(e) => {
-              setMetadata(prev => ({ ...prev, name: e.target.value }));
-              setErrors(prev => ({ ...prev, name: undefined }));
+              setMammothId(e.target.value);
             }}
             className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.name ? 'border-red-500' : ''
             }`}
           />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <textarea 
-            placeholder="Description"
-            value={metadata.description}
-            onChange={(e) => {
-              setMetadata(prev => ({ ...prev, description: e.target.value }));
-              setErrors(prev => ({ ...prev, description: undefined }));
-            }}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] ${
-              errors.description ? 'border-red-500' : ''
-            }`}
-          />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-          )}
-        </div>
-
-        <div>
-          <input 
-            type="url"
-            placeholder="Image URL (e.g, ipfs://...)"
-            value={metadata.image}
-            onChange={(e) => {
-              setMetadata(prev => ({ ...prev, image: e.target.value }));
-              setErrors(prev => ({ ...prev, image: undefined }));
-            }}
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.image ? 'border-red-500' : ''
-            }`}
-          />
-          {errors.image && (
-            <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-          )}
-        </div>
-
-        <input 
-          type="url"
-          placeholder="Thumbnail URL (optional)"
-          value={metadata.thumbnail}
-          onChange={(e) => setMetadata(prev => ({ ...prev, thumbnail: e.target.value }))}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <div className="border-t pt-4 mt-2">
-          <h3 className="text-lg font-semibold mb-3">Tags</h3>
-          <div className="flex gap-2 mb-2">
-            <input 
-              type="text"
-              placeholder="Add a tag"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={addTag}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Add
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {metadata.tags.map((tag, index) => (
-              <div key={index} className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full">
-                <span>{tag}</span>
-                <button
-                  onClick={() => removeTag(index)}
-                  className="text-blue-600 hover:text-blue-800 font-bold"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t pt-4 mt-2">
-          <h3 className="text-lg font-semibold mb-3">Attributes</h3>
-          <div className="flex gap-2 mb-2">
-            <input 
-              type="text"
-              placeholder="Trait Type"
-              value={newAttribute.traitType}
-              onChange={(e) => setNewAttribute(prev => ({ ...prev, traitType: e.target.value }))}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input 
-              type="text"
-              placeholder="Value"
-              value={newAttribute.value}
-              onChange={(e) => setNewAttribute(prev => ({ ...prev, value: e.target.value }))}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={addAttribute}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Add
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {metadata.attributes.map((attr, index) => (
-              <div 
-                key={index} 
-                className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-500">{attr.traitType}</span>
-                  <span className="font-medium">{attr.value}</span>
-                </div>
-                <button
-                  onClick={() => removeAttribute(index)}
-                  className="text-gray-400 hover:text-red-600 transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
         </div>
 
         <button
