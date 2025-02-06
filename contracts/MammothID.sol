@@ -46,9 +46,9 @@ contract MammothID is Ownable2Step, ContractMetadata, ERC721Cementable {
         // build the token metadata
         string memory tokenMetadata = "{}";
         tokenMetadata = tokenMetadata
-            .setTokenMetadataByPath("name", mammothName)
-            .setTokenMetadataByPath("description", "Mammoth Security ID")
-            .setTokenMetadataByPath("image", imageUri)
+            .setTokenMetadata("name", mammothName)
+            .setTokenMetadata("description", "Mammoth Security ID")
+            .setTokenMetadata("image", imageUri)
             .setTokenAttribute("Eyes", eyes)
             .setTokenAttribute("Tusks", tusks);
 

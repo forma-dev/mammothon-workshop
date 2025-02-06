@@ -10,7 +10,7 @@
   "author": "mycodecrafting <josh@codecrafting.org>",
   "homepage": "https://forma.art",
   "dependencies": {
-    "@forma-dev/sdk": "0.12.0",
+    "@forma-dev/sdk": "0.13.0",
     "@openzeppelin/contracts": "^5.2.0",
     "node-fetch": "^3.3.2"
   },
@@ -35,9 +35,11 @@
     "contracts:clean": "rm -fr artifacts cache",
     "contracts:lint": "solhint \"contracts/**/*.sol\"",
     "contracts:prettier": "prettier --write --plugin=prettier-plugin-solidity \"contracts/**/*.sol\"",
-    "contracts:build": "pnpm hardhat compile",
+    "contracts:compile": "pnpm hardhat compile",
     "myerc721:deploy": "pnpm hardhat run scripts/myerc721-deploy.ts --network sketchpad",
     "myerc721:verify": "pnpm hardhat run scripts/myerc721-verify.ts --network sketchpad",
+    "mammothid:deploy": "pnpm hardhat run scripts/mammothid-deploy.ts --network sketchpad",
+    "mammothid:verify": "pnpm hardhat run scripts/mammothid-verify.ts --network sketchpad",
     "app:dev": "cd app && pnpm dev",
     "app:build": "cd app && pnpm build",
     "app:start": "cd app && pnpm start",

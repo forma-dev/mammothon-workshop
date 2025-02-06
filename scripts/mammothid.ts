@@ -1,5 +1,5 @@
 export const mammothIdConfig = {
-  address: "0xf196014c3B4E9718aC2445088e99E9ea9be8e2EC", // address of the deployed contract (fill in after deploying)
+  address: "", // address of the deployed contract (fill in after deploying)
   contractMetadata: {
     name: "Mammoth Security ID",
     description: "Security IDS for the Mammoth Collection",
